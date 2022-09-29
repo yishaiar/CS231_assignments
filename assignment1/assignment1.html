@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)http://localhost:6419/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <title>assignment1.md - Grip</title>
+  <link rel="icon" href="http://localhost:6419/__/grip/static/favicon.ico">
+  <link rel="stylesheet" href="./assignment1_files/octicons.css">
+  <style>
+    /* Page tweaks */
+    .preview-page {
+      margin-top: 64px;
+      margin-bottom: 21px;
+    }
+    /* User-content tweaks */
+    .timeline-comment-wrapper > .timeline-comment:after,
+    .timeline-comment-wrapper > .timeline-comment:before {
+      content: none;
+    }
+    /* User-content overrides */
+    .discussion-timeline.wide {
+      width: 920px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div id="preview-page" class="preview-page" data-autorefresh-url="/__/grip/refresh/">
+    <main id="js-repo-pjax-container">
+      <div class="clearfix new-discussion-timeline container-xl px-3 px-md-4 px-lg-5">
+        <div class="repository-content">
+          <div class="clearfix">
+            <div class="Layout Layout--flowRow-until-md Layout--sidebarPosition-end Layout--sidebarPosition-flowRow-end">
+              <div class="Layout-main">
+
+                
+
+                  <div id="readme" class="Box md Box--responsive">
+                    
+                      <div class="Box-header d-flex border-bottom-0 flex-items-center flex-justify-between color-bg-default rounded-top-2">
+                        <div class="d-flex flex-items-center">
+                          <h2 class="Box-title">
+                            assignment1.md
+                          </h2>
+                        </div>
+                      </div>
+                    
+                    <div class="Box-body px-5 pb-5">
+                      <article id="grip-content" class="markdown-body entry-content container-lg">
+                        <hr>
+<h2><a id="user-content-layout-pagemathjax-truepermalink-assignments2017assignment1" class="anchor" aria-hidden="true" href="http://localhost:6419/#layout-pagemathjax-truepermalink-assignments2017assignment1"><span aria-hidden="true" class="octicon octicon-link"></span></a>layout: page
+mathjax: true
+permalink: /assignments2017/assignment1/</h2>
+<p><strong>Note: this is the 2017 version of this assignment.</strong></p>
+<p>In this assignment you will practice putting together a simple image classification pipeline, based on the k-Nearest Neighbor or the SVM/Softmax classifier. The goals of this assignment are as follows:</p>
+<ul>
+<li>understand the basic <strong>Image Classification pipeline</strong> and the data-driven approach (train/predict stages)</li>
+<li>understand the train/val/test <strong>splits</strong> and the use of validation data for <strong>hyperparameter tuning</strong>.</li>
+<li>develop proficiency in writing efficient <strong>vectorized</strong> code with numpy</li>
+<li>implement and apply a k-Nearest Neighbor (<strong>kNN</strong>) classifier</li>
+<li>implement and apply a Multiclass Support Vector Machine (<strong>SVM</strong>) classifier</li>
+<li>implement and apply a <strong>Softmax</strong> classifier</li>
+<li>implement and apply a <strong>Two layer neural network</strong> classifier</li>
+<li>understand the differences and tradeoffs between these classifiers</li>
+<li>get a basic understanding of performance improvements from using <strong>higher-level representations</strong> than raw pixels (e.g. color histograms, Histogram of Gradient (HOG) features)</li>
+</ul>
+<h2><a id="user-content-setup" class="anchor" aria-hidden="true" href="http://localhost:6419/#setup"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setup</h2>
+<p>You can work on the assignment in one of two ways: locally on your own machine, or on a virtual machine on Google Cloud.</p>
+<h3><a id="user-content-working-remotely-on-google-cloud-recommended" class="anchor" aria-hidden="true" href="http://localhost:6419/#working-remotely-on-google-cloud-recommended"><span aria-hidden="true" class="octicon octicon-link"></span></a>Working remotely on Google Cloud (Recommended)</h3>
+<p><strong>Note:</strong> after following these instructions, make sure you go to <strong>Download data</strong> below (you can skip the <strong>Working locally</strong> section).</p>
+<p>As part of this course, you can use Google Cloud for your assignments. We recommend this route for anyone who is having trouble with installation set-up, or if you would like to use better CPU/GPU resources than you may have locally. Please see the set-up tutorial <a href="http://cs231n.github.io/gce-tutorial/" rel="nofollow">here</a> for more details. :)</p>
+<h3><a id="user-content-working-locally" class="anchor" aria-hidden="true" href="http://localhost:6419/#working-locally"><span aria-hidden="true" class="octicon octicon-link"></span></a>Working locally</h3>
+<p>Get the code as a zip file <a href="http://cs231n.stanford.edu/assignments/2017/spring1617_assignment1.zip" rel="nofollow">here</a>. As for the dependencies:</p>
+<p><strong>Installing Python 3.5+:</strong>
+To use python3, make sure to install version 3.5 or 3.6 on your local machine. If you are on Mac OS X, you can do this using <a href="https://brew.sh/" rel="nofollow">Homebrew</a> with <code>brew install python3</code>. You can find instructions for Ubuntu <a href="https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-ubuntu-16-04" rel="nofollow">here</a>.</p>
+<p><strong>Virtual environment:</strong>
+If you decide to work locally, we recommend using <a href="http://docs.python-guide.org/en/latest/dev/virtualenvs/" rel="nofollow">virtual environment</a> for the project. If you choose not to use a virtual environment, it is up to you to make sure that all dependencies for the code are installed globally on your machine. To set up a virtual environment, run the following:</p>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> assignment1
+sudo pip install virtualenv      <span class="pl-c"><span class="pl-c">#</span> This may already be installed</span>
+virtualenv -p python3 .env       <span class="pl-c"><span class="pl-c">#</span> Create a virtual environment (python3)</span>
+<span class="pl-c"><span class="pl-c">#</span> Note: you can also use "virtualenv .env" to use your default python (usually python 2.7)</span>
+<span class="pl-c1">source</span> .env/bin/activate         <span class="pl-c"><span class="pl-c">#</span> Activate the virtual environment</span>
+pip install -r requirements.txt  <span class="pl-c"><span class="pl-c">#</span> Install dependencies</span>
+<span class="pl-c"><span class="pl-c">#</span> Work on the assignment for a while ...</span>
+deactivate                       <span class="pl-c"><span class="pl-c">#</span> Exit the virtual environment</span></pre></div>
+<p>Note that every time you want to work on the assignment, you should run <code>source .env/bin/activate</code> (from within your <code>assignment1</code> folder) to re-activate the virtual environment, and <code>deactivate</code> again whenever you are done.</p>
+<h3><a id="user-content-download-data" class="anchor" aria-hidden="true" href="http://localhost:6419/#download-data"><span aria-hidden="true" class="octicon octicon-link"></span></a>Download data:</h3>
+<p>Once you have the starter code (regardless of which method you choose above), you will need to download the CIFAR-10 dataset.
+Run the following from the <code>assignment1</code> directory:</p>
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> cs231n/datasets
+./get_datasets.sh</pre></div>
+<h3><a id="user-content-start-ipython" class="anchor" aria-hidden="true" href="http://localhost:6419/#start-ipython"><span aria-hidden="true" class="octicon octicon-link"></span></a>Start IPython:</h3>
+<p>After you have the CIFAR-10 data, you should start the IPython notebook server from the
+<code>assignment1</code> directory, with the <code>jupyter notebook</code> command. (See the <a href="http://cs231n.github.io/gce-tutorial/" rel="nofollow">Google Cloud Tutorial</a> for any additional steps you may need to do for setting this up, if you are working remotely)</p>
+<p>If you are unfamiliar with IPython, you can also refer to our
+<a href="http://localhost:6419/ipython-tutorial.md">IPython tutorial</a>.</p>
+<h3><a id="user-content-some-notes" class="anchor" aria-hidden="true" href="http://localhost:6419/#some-notes"><span aria-hidden="true" class="octicon octicon-link"></span></a>Some Notes</h3>
+<p><strong>NOTE 1:</strong> This year, the <code>assignment1</code> code has been tested to be compatible with python versions <code>2.7</code>, <code>3.5</code>, <code>3.6</code> (it may work with other versions of <code>3.x</code>, but we won't be officially supporting them). You will need to make sure that during your <code>virtualenv</code> setup that the correct version of <code>python</code> is used. You can confirm your python version by (1) activating your virtualenv and (2) running <code>which python</code>.</p>
+<p><strong>NOTE 2:</strong> If you are working in a virtual environment on OSX, you may <em>potentially</em> encounter
+errors with matplotlib due to the <a href="http://matplotlib.org/faq/virtualenv_faq.html" rel="nofollow">issues described here</a>. In our testing, it seems that this issue is no longer present with the most recent version of matplotlib, but if you do end up running into this issue you may have to use the <code>start_ipython_osx.sh</code> script from the <code>assignment1</code> directory (instead of <code>jupyter notebook</code> above) to launch your IPython notebook server. Note that you may have to modify some variables within the script to match your version of python/installation directory. The script assumes that your virtual environment is named <code>.env</code>.</p>
+<h3><a id="user-content-submitting-your-work" class="anchor" aria-hidden="true" href="http://localhost:6419/#submitting-your-work"><span aria-hidden="true" class="octicon octicon-link"></span></a>Submitting your work:</h3>
+<p>Whether you work on the assignment locally or using Google Cloud, once you are done
+working run the <code>collectSubmission.sh</code> script; this will produce a file called
+<code>assignment1.zip</code>. Please submit this file on <a href="https://canvas.stanford.edu/courses/66461/" rel="nofollow">Canvas</a>.</p>
+<h3><a id="user-content-q1-k-nearest-neighbor-classifier-20-points" class="anchor" aria-hidden="true" href="http://localhost:6419/#q1-k-nearest-neighbor-classifier-20-points"><span aria-hidden="true" class="octicon octicon-link"></span></a>Q1: k-Nearest Neighbor classifier (20 points)</h3>
+<p>The IPython Notebook <strong>knn.ipynb</strong> will walk you through implementing the kNN classifier.</p>
+<h3><a id="user-content-q2-training-a-support-vector-machine-25-points" class="anchor" aria-hidden="true" href="http://localhost:6419/#q2-training-a-support-vector-machine-25-points"><span aria-hidden="true" class="octicon octicon-link"></span></a>Q2: Training a Support Vector Machine (25 points)</h3>
+<p>The IPython Notebook <strong>svm.ipynb</strong> will walk you through implementing the SVM classifier.</p>
+<h3><a id="user-content-q3-implement-a-softmax-classifier-20-points" class="anchor" aria-hidden="true" href="http://localhost:6419/#q3-implement-a-softmax-classifier-20-points"><span aria-hidden="true" class="octicon octicon-link"></span></a>Q3: Implement a Softmax classifier (20 points)</h3>
+<p>The IPython Notebook <strong>softmax.ipynb</strong> will walk you through implementing the Softmax classifier.</p>
+<h3><a id="user-content-q4-two-layer-neural-network-25-points" class="anchor" aria-hidden="true" href="http://localhost:6419/#q4-two-layer-neural-network-25-points"><span aria-hidden="true" class="octicon octicon-link"></span></a>Q4: Two-Layer Neural Network (25 points)</h3>
+<p>The IPython Notebook <strong>two_layer_net.ipynb</strong> will walk you through the implementation of a two-layer neural network classifier.</p>
+<h3><a id="user-content-q5-higher-level-representations-image-features-10-points" class="anchor" aria-hidden="true" href="http://localhost:6419/#q5-higher-level-representations-image-features-10-points"><span aria-hidden="true" class="octicon octicon-link"></span></a>Q5: Higher Level Representations: Image Features (10 points)</h3>
+<p>The IPython Notebook <strong>features.ipynb</strong> will walk you through this exercise, in which you will examine the improvements gained by using higher-level representations as opposed to using raw pixel values.</p>
+<h3><a id="user-content-q6-cool-bonus-do-something-extra-10-points" class="anchor" aria-hidden="true" href="http://localhost:6419/#q6-cool-bonus-do-something-extra-10-points"><span aria-hidden="true" class="octicon octicon-link"></span></a>Q6: Cool Bonus: Do something extra! (+10 points)</h3>
+<p>Implement, investigate or analyze something extra surrounding the topics in this assignment, and using the code you developed. For example, is there some other interesting question we could have asked? Is there any insightful visualization you can plot? Or anything fun to look at? Or maybe you can experiment with a spin on the loss function? If you try out something cool we'll give you up to 10 extra points and may feature your results in the lecture.</p>
+
+                      </article>
+                    </div>
+                  </div>
+
+                
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  </div><script>
+    function showCanonicalImages() {
+      var images = document.getElementsByTagName('img');
+      if (!images) {
+        return;
+      }
+      for (var index = 0; index < images.length; index++) {
+        var image = images[index];
+        if (image.getAttribute('data-canonical-src') && image.src !== image.getAttribute('data-canonical-src')) {
+          image.src = image.getAttribute('data-canonical-src');
+        }
+      }
+    }
+
+    function scrollToHash() {
+      if (location.hash && !document.querySelector(':target')) {
+        var element = document.getElementById('user-content-' + location.hash.slice(1));
+        if (element) {
+           element.scrollIntoView();
+        }
+      }
+    }
+
+    function autorefreshContent(eventSourceUrl) {
+      var initialTitle = document.title;
+      var contentElement = document.getElementById('grip-content');
+      var source = new EventSource(eventSourceUrl);
+      var isRendering = false;
+
+      source.onmessage = function(ev) {
+        var msg = JSON.parse(ev.data);
+        if (msg.updating) {
+          isRendering = true;
+          document.title = '(Rendering) ' + document.title;
+        } else {
+          isRendering = false;
+          document.title = initialTitle;
+          contentElement.innerHTML = msg.content;
+          showCanonicalImages();
+        }
+      }
+
+      source.onerror = function(e) {
+        if (e.readyState === EventSource.CLOSED && isRendering) {
+          isRendering = false;
+          document.title = initialTitle;
+        }
+      }
+    }
+
+    window.onhashchange = function() {
+      scrollToHash();
+    }
+
+    window.onload = function() {
+      scrollToHash();
+    }
+
+    showCanonicalImages();
+
+    var autorefreshUrl = document.getElementById('preview-page').getAttribute('data-autorefresh-url');
+    if (autorefreshUrl) {
+      autorefreshContent(autorefreshUrl);
+    }
+  </script>
+
+</body></html>

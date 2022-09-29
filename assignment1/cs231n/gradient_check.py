@@ -131,3 +131,5 @@ def grad_check_sparse(f, x, analytic_grad, num_checks=10, h=1e-5):
             "numerical: %f analytic: %f, relative error: %e"
             % (grad_numerical, grad_analytic, rel_error)
         )
+
+        

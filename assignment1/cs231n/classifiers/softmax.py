@@ -128,12 +128,69 @@ def softmax_loss_vectorized(W, X, y, reg):
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW
-if __name__ == "__main__":
-    X = np.arange(3072*50).reshape(50,3072)
-    X = np.hstack([X, np.ones((X.shape[0], 1))])
-    y = np.random.randint(10,size = 50)
-    print('X data shape: ', X.shape)
-    print('y data shape: ', y.shape)
-    W = np.random.randn(3073, 10) * 0.0001
-    loss, grad = softmax_loss_vectorized(W, X, y, 0.0)
-    print (loss)
+
+
+
+
+
+class Softmax(object):
+  """ a Softmax classifier with softmax_loss_vectorized """
+
+  def __init__(self):
+    pass
+
+  def train(self, X_train, y_train,lr, reg, num_iters=1000):
+    """
+    Train the classifier. 
+
+    Inputs:
+    - X: A numpy array of shape (num_train, D) containing the training data
+      consisting of num_train samples each of dimension D.
+    - y: A numpy array of shape (N,) containing the training labels, where
+         y[i] is the label for X[i].
+    """
+    self.X_train = X
+    self.y_train = y
+    
+  def predict(self, X, k=1, num_loops=0):
+    """
+    Predict labels for test data using this classifier.
+
+    Inputs:
+    - X: A numpy array of shape (num_test, D) containing test data consisting
+         of num_test samples each of dimension D.
+    - k: The number of nearest neighbors that vote for the predicted labels.
+    - num_loops: Determines which implementation to use to compute distances
+      between training points and testing points.
+
+    Returns:
+    - y: A numpy array of shape (num_test,) containing predicted labels for the
+      test data, where y[i] is the predicted label for the test point X[i].  
+    """
+    if num_loops == 0:
+      dists = self.compute_distances_no_loops(X)
+    elif num_loops == 1:
+      dists = self.compute_distances_one_loop(X)
+    elif num_loops == 2:
+      dists = self.compute_distances_two_loops(X)
+    else:
+      raise ValueError('Invalid value %d for num_loops' % num_loops)
+
+    return self.predict_labels(dists, k=k)
+
+
+
+
+
+
+
+
+# if __name__ == "__main__":
+#     X = np.arange(3072*50).reshape(50,3072)
+#     X = np.hstack([X, np.ones((X.shape[0], 1))])
+#     y = np.random.randint(10,size = 50)
+#     print('X data shape: ', X.shape)
+#     print('y data shape: ', y.shape)
+#     W = np.random.randn(3073, 10) * 0.0001
+#     loss, grad = softmax_loss_vectorized(W, X, y, 0.0)
+#     print (loss)

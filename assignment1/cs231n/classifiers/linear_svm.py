@@ -88,7 +88,6 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     # X[i] is a 3073 vector
-    num_features = X.shape[1]
 
     # X[i].dot(W) is 10 columns vector
     

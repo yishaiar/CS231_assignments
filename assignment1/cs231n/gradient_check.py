@@ -110,6 +110,12 @@ def grad_check_sparse(f, x, analytic_grad, num_checks=10, h=1e-5):
     """
     sample a few random elements and only return numerical
     in this dimensions.
+    f is the loss calculation function such as: svm_loss_naive
+    x is the input W weight matrix
+    f(x) is the *analytic* loss from function (loss noy gradient)   
+    the numeric grad is estimated fron the loss derivativ to the function
+    
+    every time the numeric is compared to the grad i.e dW ata specific (i,j) index
     """
 
     for i in range(num_checks):

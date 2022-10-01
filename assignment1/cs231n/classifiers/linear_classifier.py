@@ -3,10 +3,10 @@ from __future__ import print_function
 from builtins import range
 from builtins import object
 import numpy as np
-# from ..classifiers.linear_svm import *
-# from ..classifiers.softmax import *
-from linear_svm import *
-from softmax import *
+from ..classifiers.linear_svm import *
+from ..classifiers.softmax import *
+# from linear_svm import *
+# from softmax import *
 from past.builtins import xrange
 
 
@@ -121,8 +121,8 @@ class LinearClassifier(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        y_pred = X@self.W
-
+        
+        y_pred = np.argmax(X @ self.W, axis=1)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return y_pred
 

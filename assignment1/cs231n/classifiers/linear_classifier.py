@@ -3,8 +3,10 @@ from __future__ import print_function
 from builtins import range
 from builtins import object
 import numpy as np
-from ..classifiers.linear_svm import *
-from ..classifiers.softmax import *
+# from ..classifiers.linear_svm import *
+# from ..classifiers.softmax import *
+from linear_svm import *
+from softmax import *
 from past.builtins import xrange
 
 
@@ -48,10 +50,16 @@ class LinearClassifier(object):
             self.W = 0.001 * np.random.randn(dim, num_classes)
 
         # Run stochastic gradient descent to optimize W
+        
+        # 
         loss_history = []
         for it in range(num_iters):
+            
+                
+          
             X_batch = None
             y_batch = None
+
 
             #########################################################################
             # TODO:                                                                 #
@@ -65,8 +73,10 @@ class LinearClassifier(object):
             # replacement is faster than sampling without replacement.              #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
+            # every mini batch is a new sample (there is no need to worry about sample size)
+            indices = np.random.choice(num_train, batch_size)
+            X_batch = X[indices]
+            y_batch = y[indices]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -81,7 +91,7 @@ class LinearClassifier(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            self.W  -= learning_rate*grad
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -111,7 +121,7 @@ class LinearClassifier(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        y_pred = X@self.W
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return y_pred
@@ -146,3 +156,39 @@ class Softmax(LinearClassifier):
 
     def loss(self, X_batch, y_batch, reg):
         return softmax_loss_vectorized(self.W, X_batch, y_batch, reg)
+
+
+
+    
+    
+    
+if __name__ == "__main__":
+    X_dev = np.random.randint (128,size = (5,3072))
+    X_dev = np.hstack([X_dev, np.ones((X_dev.shape[0], 1))])
+    
+    y_dev = np.random.randint (10,size = 5)
+    # # print(X_dev.shape)
+    # # W = np.random.randn(3073, 10) * 0.0001 
+    
+    # # reg = 0.000005
+    # # loss, grad = svm_loss_naive(W, X_dev, y_dev, reg)
+    # # print(loss)
+    # # loss, grad = svm_loss_vectorized(W, X_dev, y_dev, reg)
+    # # print(loss)
+    
+    # # # print(W[1,:])
+    svm = LinearSVM()
+    loss_hist = svm.train(X_dev, y_dev, learning_rate=1e-7, reg=2.5e4,
+                      num_iters=1500, verbose=True)
+    y=svm.predict(X_dev)
+    
+    
+    
+   
+    
+    
+    
+    
+    
+    
+    

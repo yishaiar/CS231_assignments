@@ -105,7 +105,7 @@ def svm_loss_vectorized(W, X, y, reg):
     margin[margin<0] = 0
     loss = np.sum(margin[:])
     
-    dW = (margin > 0).astype(int)    #  gradient with respect to Y_hat
+    dW = (margin > 0).astype(int)    #  gradient with respect to scores
 
     dW[np.arange(num_train), y] -= dW.sum(axis=1) # update gradient to include correct labels
     dW = X.T @ dW    # gradient with respect to W

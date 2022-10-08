@@ -246,9 +246,32 @@ def softmax_loss(x, y):
     # cs231n/classifiers/softmax.py.                                          #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    
+    # X training dataset not recieved
+    # y is the correct class for each X
+    # input x is the previously calculated *scores* f(w,X)= X.dot(W); sCORE VECTOR OF 10 CLASSES for each x[i] sample by the number of X samples 
+    
+    # num_train,num_classes = x.shape  
+    num_train,_ = x.shape
 
-    pass
+    x =np.exp( x - (np.max(x,axis = 1)[:, np.newaxis])) # numerically stable exponent vector for all samples (matrix)
+    # softmax for each score
+    softmax = x /(np.sum( x, axis = 1)[:, np.newaxis])
+    #  cross-entropy loss
+    loss = -(np.log(softmax[range(num_train),y])).sum()
+    
+    # GRADIENT
+    dx =softmax
+    # http://intelligence.korea.ac.kr/jupyter/2020/06/30/softmax-classifer-cs231n.html  
+    # gradient with respect to x (scores, f in the website)   
+    dx[range(num_train),y] -= 1                  # update for gradient; for every grad(i,j=y_i )= P_j - 1
+        
+    # Right now the loss is a sum over all training examples, but we want it
+    # to be an average instead so we divide by num_train.
+    loss /= num_train
+    dx /= num_train
 
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -258,20 +281,20 @@ def softmax_loss(x, y):
 
 
 
-if __name__ == "__main__":
-  # affine forward
-  # num_inputs = 2
-  # input_shape = (4, 5, 6)
-  # output_dim = 3
+# if __name__ == "__main__":
+#   # affine forward
+#   num_inputs = 2
+#   input_shape = (4, 5, 6)
+#   output_dim = 3
 
-  # input_size = num_inputs * np.prod(input_shape)
-  # weight_size = output_dim * np.prod(input_shape)
+#   input_size = num_inputs * np.prod(input_shape)
+#   weight_size = output_dim * np.prod(input_shape)
 
-  # x = np.linspace(-0.1, 0.5, num=input_size).reshape(num_inputs, *input_shape)
-  # w = np.linspace(-0.2, 0.3, num=weight_size).reshape(np.prod(input_shape), output_dim)
-  # b = np.linspace(-0.3, 0.1, num=output_dim)
+#   x = np.linspace(-0.1, 0.5, num=input_size).reshape(num_inputs, *input_shape)
+#   w = np.linspace(-0.2, 0.3, num=weight_size).reshape(np.prod(input_shape), output_dim)
+#   b = np.linspace(-0.3, 0.1, num=output_dim)
 
-  # out, _ = affine_forward(x, w, b)
+#   out, _ = affine_forward(x, w, b)
 
 
 # # affine  backward function
@@ -286,7 +309,7 @@ if __name__ == "__main__":
 #   dw_num = eval_numerical_gradient_array(lambda w: affine_forward(x, w, b)[0], w, dout)
 #   db_num = eval_numerical_gradient_array(lambda b: affine_forward(x, w, b)[0], b, dout)
 
-#   _, cache = affine_forward(x, w, b)
+#   _ , cache = affine_forward(x, w, b)
 #   dx, dw, db = affine_backward(dout, cache)
   
 #   
@@ -301,14 +324,19 @@ if __name__ == "__main__":
   # _, cache = relu_forward(x)
   # dx = relu_backward(dout, cache)
 
-   # svm_loss
-    np.random.seed(231)
-    num_classes, num_inputs = 10, 50
-    x = 0.001 * np.random.randn(num_inputs, num_classes)
-    y = np.random.randint(num_classes, size=num_inputs)
-    from gradient_check import eval_numerical_gradient, eval_numerical_gradient_array
+  #  # svm_loss
+  #   np.random.seed(231)
+  #   num_classes, num_inputs = 10, 50
+  #   x = 0.001 * np.random.randn(num_inputs, num_classes)
+  #   y = np.random.randint(num_classes, size=num_inputs)
+  #   from gradient_check import eval_numerical_gradient, eval_numerical_gradient_array
 
-    dx_num = eval_numerical_gradient(lambda x: svm_loss(x, y)[0], x, verbose=False)
-    loss, dx = svm_loss(x, y)
+  #   # dx_num = eval_numerical_gradient(lambda x: svm_loss(x, y)[0], x, verbose=False)
+  #   # loss, dx = svm_loss(x, y)
+    
+  #   dx_num = eval_numerical_gradient(lambda x: softmax_loss(x, y)[0], x, verbose=False)
+  #   loss, dx = softmax_loss(x, y)
+    
+
 
  

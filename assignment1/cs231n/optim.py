@@ -49,7 +49,7 @@ def sgd(w, dw, config=None):
     
 
     
-    w  = w[:, np.newaxis]- config["learning_rate"] * dw
+    w  = w- config["learning_rate"] * dw
    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****

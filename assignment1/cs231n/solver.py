@@ -9,7 +9,8 @@ import pickle as pickle
 
 import numpy as np
 
-from cs231n import optim
+# from cs231n import optim
+import optim
 
 
 class Solver(object):
@@ -181,11 +182,12 @@ class Solver(object):
         loss, grads = self.model.loss(X_batch, y_batch)
         self.loss_history.append(loss)
 
-        # Perform a parameter update
+        # Perform a parameter update:
         for p, w in self.model.params.items():
+          # self.model.params.items is a dictionary contains w1,w2,b1,b2
             dw = grads[p]
+          # grads is a dictionary contains w1,w2,b1,b2
             config = self.optim_configs[p]
-            
             next_w, next_config = self.update_rule(w, dw, config)
             self.model.params[p] = next_w
             self.optim_configs[p] = next_config
@@ -261,6 +263,7 @@ class Solver(object):
         num_iterations = self.num_epochs * iterations_per_epoch
 
         for t in range(num_iterations):
+          # Make a single gradient update
             self._step()
 
             # Maybe print training loss
@@ -308,3 +311,40 @@ class Solver(object):
 
         # At the end of training swap the best params into the model
         self.model.params = self.best_params
+
+
+
+
+
+
+if __name__ == "__main__":
+  from classifiers.fc_net import *
+  input_size = 32 * 32 * 3
+  hidden_size = 50
+  num_classes = 10
+  model = TwoLayerNet(input_size, hidden_size, num_classes)
+  solver = None
+
+  
+  # CREAT THE DATA FILE
+  # Data ={}
+  # str = ['X_train','y_train','X_val','y_val']
+  # for s in str:
+  #     Data[s] = data[s]    
+  # for k, v in list(Data.items()):    
+  #   print(('%s: ' % k, v.shape))
+  
+  from data_utils import get_CIFAR10_data
+  data = get_CIFAR10_data()
+  for k, v in list(data.items()):
+    print(('%s: ' % k, v.shape))
+  solver = Solver(model, data,
+                      update_rule='sgd',
+                      optim_config={
+                        'learning_rate': 1e-3,
+                      },
+                      lr_decay=0.95,
+                      num_epochs=10, batch_size=100,
+                      print_every=100)
+  solver.train()
+  print('Validation accuracy: ', solver.best_val_acc)

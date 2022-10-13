@@ -159,10 +159,13 @@ def relu_backward(dout, cache):
     # TODO: Implement the ReLU backward pass.                                 #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    
+    # dx = [x>0]
+    # dx[x>0] = 1
+    # dx *= dout
 
-    dx = np.zeros_like(x)
-    dx[x>0] = 1
-    dx *= dout
+    dx = [x>0]  #bool index
+    dx *= dout #recieve dout with 0 every place x==0 
     
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -254,14 +257,14 @@ def softmax_loss(x, y):
     # num_train,num_classes = x.shape  
     num_train,_ = x.shape
 
-    x =np.exp( x - (np.max(x,axis = 1)[:, np.newaxis])) # numerically stable exponent vector for all samples (matrix)
+    x = np.exp( x - (np.max(x,axis = 1)[:, np.newaxis])) # numerically stable exponent vector for all samples (matrix)
     # softmax for each score
     softmax = x /(np.sum( x, axis = 1)[:, np.newaxis])
     #  cross-entropy loss
     loss = -(np.log(softmax[range(num_train),y])).sum()
     
     # GRADIENT
-    dx =softmax
+    dx = softmax
     # http://intelligence.korea.ac.kr/jupyter/2020/06/30/softmax-classifer-cs231n.html  
     # gradient with respect to x (scores, f in the website)   
     dx[range(num_train),y] -= 1                  # update for gradient; for every grad(i,j=y_i )= P_j - 1

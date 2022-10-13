@@ -25,7 +25,21 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    
+    if np.asarray(x.shape).shape[0] < 3:
+      out = x@w+b
+    
+    else: # if x dimension >=3 : reshape x
+
+      # num_minibatch,i,j,k = x.shape
+      # size_minibatch = i*j*k   
+      num_minibatch,size_minibatch = x.shape[0],np.prod(x.shape[1:])
+      
+      # reshape x to multiple minibatch vectors
+      X = x.reshape(num_minibatch,size_minibatch)
+      
+      out = X@w+b
+    # out is the final SCORES; dimension (num_minibatch,size_final)  
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -57,7 +71,20 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_minibatches,size_minibatch = x.shape[0],np.prod(x.shape[1:])
+    num_classes = w.shape[1]
+    # reshape x to multiple minibatch vectors
+    X = x.reshape(num_minibatches,size_minibatch)
+
+    # dD = np.random.randn(dout.shape)
+    dw = (X.T)@dout #.T gives the transpose of the matrix
+    dX = dout@(w.T)
+    ones = np.ones((1,num_minibatches))
+    db = ones@dout
+    # print(db.shape)
+
+    # db = np.sum()
+    dx = dX.reshape(x.shape)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -82,7 +109,9 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # reshape of x is not necessary
+    # out with same shape as x
+    out = np.maximum(0,x)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -108,7 +137,12 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # dx = [x>0]
+    # dx[x>0] = 1
+    # dx *= dout
+
+    dx = [x>0]  #bool index
+    dx *= dout #recieve dout with 0 every place x==0 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -137,7 +171,30 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # X training dataset not recieved
+    # y is the correct class for each X
+    # input x is the previously calculated *scores* f(w,X)= X.dot(W); sCORE VECTOR OF 10 CLASSES for each x[i] sample by the number of X samples 
+    
+    # num_train,num_classes = x.shape  
+    num_train,_ = x.shape
+
+    x = np.exp( x - (np.max(x,axis = 1)[:, np.newaxis])) # numerically stable exponent vector for all samples (matrix)
+    # softmax for each score
+    softmax = x /(np.sum( x, axis = 1)[:, np.newaxis])
+    #  cross-entropy loss
+    loss = -(np.log(softmax[range(num_train),y])).sum()
+    
+    # GRADIENT
+    dx = softmax
+    # http://intelligence.korea.ac.kr/jupyter/2020/06/30/softmax-classifer-cs231n.html  
+    # gradient with respect to x (scores, f in the website)   
+    dx[range(num_train),y] -= 1                  # update for gradient; for every grad(i,j=y_i )= P_j - 1
+        
+    # Right now the loss is a sum over all training examples, but we want it
+    # to be an average instead so we divide by num_train.
+    loss /= num_train
+    dx /= num_train
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -430,8 +487,13 @@ def dropout_forward(x, dropout_param):
         # Store the dropout mask in the mask variable.                        #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        # scores, cache['dropout_cache' + str(ind)] = dropout_forward(scores, self.dropout_param)
+    
+        
+        mask = (np.random.rand(*x.shape) < p) / p #  dropout mask
+        out = x*mask # drop!
 
-        pass
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -442,8 +504,8 @@ def dropout_forward(x, dropout_param):
         # TODO: Implement the test phase forward pass for inverted dropout.   #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        # all neurons are powered on test
+        out = x
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -472,8 +534,9 @@ def dropout_backward(dout, cache):
         # TODO: Implement training phase backward pass for inverted dropout   #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        
+        # drop  = x*mask;-> d_drop/dx = mask -> dx = dout/dx = dout_previous*mask
+        dx = dout*mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################

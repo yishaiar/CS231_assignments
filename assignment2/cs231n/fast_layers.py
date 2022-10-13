@@ -9,8 +9,8 @@ except ImportError:
     print("\tYou will need to compile a Cython extension for a portion of this assignment.")
     print("\tThe instructions to do this will be given in a section of the notebook below.")
 
-# from .im2col import *
 from im2col import *
+# from cs231n.im2col import *
 
 
 def conv_forward_im2col(x, w, b, conv_param):

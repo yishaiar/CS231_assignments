@@ -1,10 +1,11 @@
 from builtins import range
 from builtins import object
-import os
 import numpy as np
 
-# from ..layers import *
-# from ..layer_utils import *
+from layers import *
+from layer_utils import *
+# from cs231n.layers import *
+# from cs231n.layer_utils import *
 
 
 
@@ -41,7 +42,7 @@ class FullyConnectedNet(object):
         """Initialize a new FullyConnectedNet.
 
         Inputs:
-        - hidden_dims: A list of integers giving the size of each hidden layer.
+        - hidden_dims: A list of integers giving the size of each hidden layer[dim1,dim2,..dim_last]
         - input_dim: An integer giving the size of the input.
         - num_classes: An integer giving the number of classes to classify.
         - dropout_keep_ratio: Scalar between 0 and 1 giving dropout strength.
@@ -56,9 +57,10 @@ class FullyConnectedNet(object):
             float64 for numeric gradient checking.
         - seed: If not None, then pass this random seed to the dropout layers.
             This will make the dropout layers deteriminstic so we can gradient check the model.
+            using np.random.seed(seed) in both places would result with same matrix (layer)
         """
         self.normalization = normalization
-        self.use_dropout = dropout_keep_ratio != 1
+        self.use_dropout = dropout_keep_ratio != 1 #true/false
         self.reg = reg
         self.num_layers = 1 + len(hidden_dims)
         self.dtype = dtype
@@ -77,20 +79,34 @@ class FullyConnectedNet(object):
         # parameters should be initialized to zeros.                               #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        
-        
+           
+        print('normalization = ',self.normalization)
+        print('drop out: ',self.use_dropout)
+       
         #  affine forward
-  
-        # the intput dim of first layer is; input_dim = np.prod(input_shape)
-        # the output dim of first layer is the *first* hidden_dim  
-        self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, hidden_dims[0]))
-        self.params['b1'] = np.zeros((hidden_dims[0]))
-        
+       
+        # input dim of first layer is; input_dim = np.prod(input_shape)
+        #  append first layer dim to hidden dim 
+        hidden_dims.insert(0, input_dim)
+        # append last layer dim to hidden dim; layer output is number of classes
+        hidden_dims.append(num_classes)
         #  the input dim of second layer is first  hidden_dim
         # the output dim of second layer is second  hidden_dim
-        self.params['W2'] = np.random.normal(0, weight_scale, (hidden_dims[0], hidden_dims[1]))
-        self.params['b2'] = np.zeros((hidden_dims[1]))
 
+        #ind is layer index; initilized at layer 1 
+        for ind,dim_0,dim_1 in zip (range(1,self.num_layers+1),hidden_dims[:-1],hidden_dims[1:]):
+            
+            self.params['W' + str(ind)] = np.random.normal(0, weight_scale, (dim_0, dim_1))
+            self.params['b'+ str(ind)] = np.zeros((dim_1))
+        # del self.params['b'+ str(ind)] # last layer without bias
+
+        
+
+
+        
+
+        
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -105,9 +121,13 @@ class FullyConnectedNet(object):
             if seed is not None:
                 self.dropout_param["seed"] = seed
 
-        # With batch normalization we need to keep track of running means and
+
+        
+        
+        # normalization types: "batchnorm", "layernorm", or None for no normalization (the default).
+        # 1 -  batch normalization we need to keep track of running means and
         # variances, so we need to pass a special bn_param object to each batch
-        # normalization layer. You should pass self.bn_params[0] to the forward pass
+        # 2 - normalization layer. You should pass self.bn_params[0] to the forward pass
         # of the first batch normalization layer, self.bn_params[1] to the forward
         # pass of the second batch normalization layer, etc.
         self.bn_params = []
@@ -119,6 +139,8 @@ class FullyConnectedNet(object):
         # Cast all parameters to the correct datatype.
         for k, v in self.params.items():
             self.params[k] = v.astype(dtype)
+
+            
 
     def loss(self, X, y=None):
         """Compute loss and gradient for the fully connected net.
@@ -162,9 +184,50 @@ class FullyConnectedNet(object):
         # layer, etc.                                                              #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        
+        # LAYERS:  {affine - [batch/layer norm] - relu - [dropout]} x (L - 1) - affine - softmax
+        # where batch/layer normalization and dropout are optional and the {...} block is
+        # repeated L - 1 times.
+        # If y is None (we are in test mode)  just return scores (no need for softmax)
+        
+        # # state
+        # print ('mode is: ', mode)
+        
+        
+        # save cach of layers for back propogation
+        cache = {}
 
-        pass
+        # the output scores of previous layer is entered to next layer, the new layer output is run over the previous
+        # first layer with out = X 
+        scores = X.copy()
+        
+        #ind is layer index; initilized at layer 1 run untill layer (L-1)
+        for ind in range(1,self.num_layers):
+            # affine_relu_forward is affine - relu (missing normalization) 
+            scores, cache['cache' + str(ind)] = affine_relu_forward(scores,self.params['W' + str(ind)] , self.params['b' + str(ind)])
+            # print('layer '+ str(ind), ': forward affine - relu ')
 
+            # drop out
+            if self.use_dropout:
+                scores, cache['dropout_cache' + str(ind)] = dropout_forward(scores, self.dropout_param)
+                # print('layer '+ str(ind), ': forward dropout ')
+
+            
+            # if self.normalization == 'batchnorm':
+            #     pass
+            # elif self.normalization == 'layernorm':
+            #     pass
+            # else: #if self.normalization == None:
+            #     pass
+                
+
+        # affine_forward is  affine only (without relu, drop out)
+        ind += 1
+        scores, cache['cache' + str(ind)] = affine_forward(scores,self.params['W' + str(ind)] , self.params['b' + str(ind)])
+        # print('layer '+ str(ind), ': forward affine only')
+        
+        # output scores
+       
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -190,7 +253,41 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # calculate loss  - according to the forward pass scores
+        loss,dloss = softmax_loss(scores, y)
+        for ind in range (1,self.num_layers+1):
+            # print('loss regularization by layer: ',ind)
+            W =  self.params['W' + str(ind)]
+            loss += 0.5 * self.reg * np.sum(W * W)
+        
+        
+        
+        # # backpropogation of a multi layer neural network: 
+        
+        # # last layer - recieve the gradiant with respect of x from the final output (dloss)
+        ind = self.num_layers #start from last layer
+        # print('layer ' + str(ind), ': backward affine only')
+        d_scores, dW, db = affine_backward(dloss, cache['cache' + str(ind)])
+        # save gradiants
+        grads['W'+ str(ind)] = dW + self.reg * self.params['W' + str(ind)]
+        grads['b'+ str(ind)] = db.astype(self.dtype)
+        
+        # rest of layeres- each recieve the gradiant with respect of its previous layer (d_out)
+        for ind in range(self.num_layers-1,0,-1):
+            # drop out
+            if self.use_dropout:
+                # print('layer '+ str(ind), ': backward dropout ')
+                d_scores = dropout_backward(d_scores, cache['dropout_cache' + str(ind)])
+                
+
+            # print('layer ' + str(ind), ': backward relu - affine')
+            d_scores, dW, db = affine_relu_backward(d_scores, cache['cache' + str(ind)])
+            # save gradiants
+            grads['W'+ str(ind)] = dW + self.reg * self.params['W' + str(ind)]
+            grads['b'+ str(ind)] = db
+        # self.grads = grads
+        del cache
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -200,52 +297,50 @@ class FullyConnectedNet(object):
         return loss, grads
 
 
-
+    
 
 
 
 
 if __name__ == "__main__":
-   
+    
+    
 
-    from layers import *
-    from layer_utils import *
     np.random.seed(231)
     N, D, H1, H2, C = 2, 15, 20, 30, 10
     X = np.random.randn(N, D)
     y = np.random.randint(C, size=(N,))
-    print(X)
 
-
-    cov = np.dot(X.T, X) / X.shape[0]
-    U,S,V = np.linalg.svd(cov)
-    
-    
     for reg in [0, 3.14]:
         print("Running check with reg = ", reg)
         model = FullyConnectedNet(
-            # hidden dims
             [H1, H2],
             input_dim=D,
             num_classes=C,
             reg=reg,
             weight_scale=5e-2,
-            dtype=np.float64
-        
-        
-        
-        
+            dtype=np.float64,
+
+            dropout_keep_ratio=0.9,
+            # normalization=None,
+            # normalization='batchnorm',
+            normalization='layernorm',
+
         )
 
+
         loss, grads = model.loss(X, y)
+        # scores = model.loss(X)
         print("Initial loss: ", loss)
 
         # Most of the errors should be on the order of e-7 or smaller.   
         # NOTE: It is fine however to see an error for W2 on the order of e-5
         # for the check when reg = 0.0
-        print('For gradient checking, you should expect to see errors around 1e-7 or less')
-        # loss, grads = 0.0, {}
+        p = sorted(grads)
+        print(p)
+        
         for name in sorted(grads):
+            print(name)
             f = lambda _: model.loss(X, y)[0]
             grad_num = eval_numerical_gradient(f, model.params[name], verbose=False, h=1e-5)
             print(f"{name} relative error: {rel_error(grad_num, grads[name])}")

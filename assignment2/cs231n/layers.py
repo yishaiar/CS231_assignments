@@ -1,4 +1,5 @@
 from builtins import range
+from locale import normalize
 import numpy as np
 
 
@@ -240,7 +241,8 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     - out: of shape (N, D)
     - cache: A tuple of values needed in the backward pass
     """
-    mode = bn_param["mode"]
+    
+    mode = bn_param['mode']
     eps = bn_param.get("eps", 1e-5)
     momentum = bn_param.get("momentum", 0.9)
 
@@ -272,8 +274,16 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # might prove to be helpful.                                          #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        # beta is E(x) i.e the shift parmater; initialized beta = np.zeros((dim_1))
+        # gamma is sqrt(var(x)) i.e the Scale parameters; initialized gamma = np.ones((dim_1))
+        
+        beta  = np.mean(x, axis = 0)
+        gamma = np.std(x, axis = 0)
+        # normalize
+        out = (x - beta) / np.sqrt(gamma**2+eps)
+        
 
-        pass
+        cache = (beta,gamma)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -328,8 +338,9 @@ def batchnorm_backward(dout, cache):
     # might prove to be helpful.                                              #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    # beta is E(x) i.e the shift parmater; initialized beta = np.zeros((dim_1))
+      # gamma is sqrt(var(x)) i.e the Scale parameters; initialized gamma = np.ones((dim_1))
+    beta,gamma = cache
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################

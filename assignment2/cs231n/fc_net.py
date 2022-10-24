@@ -2,10 +2,10 @@ from builtins import range
 from builtins import object
 import numpy as np
 
-from layers import *
-from layer_utils import *
-# from cs231n.layers import *
-# from cs231n.layer_utils import *
+# from layers import *
+# from layer_utils import *
+from cs231n.layers import *
+from cs231n.layer_utils import *
 
 
 
@@ -97,18 +97,23 @@ class FullyConnectedNet(object):
         for ind,dim_0,dim_1 in zip (range(1,self.num_layers+1),hidden_dims[:-1],hidden_dims[1:]):
             
             self.params['W' + str(ind)] = np.random.normal(0, weight_scale, (dim_0, dim_1))
-            self.params['b'+ str(ind)] = np.zeros((dim_1))
-            # beta is E(x) i.e the shift parmater
-            self.params['beta'+ str(ind)] = np.zeros((dim_1))
-            # gamma is sqrt(var(x)) i.e the Scale parameters
-            self.params['gamma'+ str(ind)] = np.ones((dim_1))
+            # * sqrt(2.0/n)
+            self.params['b'+ str(ind)] = np.zeros((1,dim_1))
+            
+            if self.normalization != None: 
+            #there are no beta gamma in model (in that case they were never used )
+       
+                # beta is E(x) i.e the shift parmater
+                self.params['beta'+ str(ind)] = np.zeros((1,dim_1))
+                # gamma is sqrt(var(x)) i.e the Scale parameters
+                self.params['gamma'+ str(ind)] = np.ones((1,dim_1))
         # del self.params['b'+ str(ind)] # last layer without bias
 
         
 
 
         
-
+        
         
         
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -139,6 +144,7 @@ class FullyConnectedNet(object):
             self.bn_params = [{"mode": "train"} for i in range(self.num_layers - 1)]
         if self.normalization == "layernorm":
             self.bn_params = [{} for i in range(self.num_layers - 1)]
+        
 
         # Cast all parameters to the correct datatype.
         for k, v in self.params.items():
@@ -204,14 +210,27 @@ class FullyConnectedNet(object):
         # the output scores of previous layer is entered to next layer, the new layer output is run over the previous
         # first layer with out = X 
         scores = X.copy()
+
+
+        # we need to pass a special bn_param object to each batch when normalizing (written previously)
+        # when normalizing ==NONE -> bn_params == NONE:
+        if self.normalization == None:
+            self.bn_params = [None for i in range(self.num_layers - 1)]
         
         #ind is layer index; initilized at layer 1 run untill layer (L-1)
         for ind in range(1,self.num_layers):
+            
             # affine_relu_forward is affine - relu (missing normalization) 
             # scores, cache['cache' + str(ind)] = affine_relu_forward(scores,self.params['W' + str(ind)] , self.params['b' + str(ind)])
             # affine_norm_activation_forward is affine - norm - activation(relu) 
-            scores, cache['cache' + str(ind)] = affine_norm_activation_forward(scores,self.params['W' + str(ind)] , self.params['b' + str(ind)],\
-                 self.params['beta' + str(ind)],self.params['gamma' + str(ind)],self.bn_params[ind-1],norm = self.normalization, activation = 'ReLU')
+            if self.normalization != None: 
+                scores, cache['cache' + str(ind)] = affine_norm_activation_forward(scores,self.params['W' + str(ind)] \
+                    ,self.params['b' + str(ind)],self.bn_params[ind-1], self.normalization, 'ReLU'\
+                    ,self.params['beta' + str(ind)],self.params['gamma' + str(ind)])
+            else:
+                scores, cache['cache' + str(ind)] = affine_norm_activation_forward(scores,self.params['W' + str(ind)] \
+                    ,self.params['b' + str(ind)],self.bn_params[ind-1], self.normalization, 'ReLU')
+
             # print('layer '+ str(ind), ': forward affine - norm - relu ')
 
             # drop out
@@ -220,12 +239,12 @@ class FullyConnectedNet(object):
                 # print('layer '+ str(ind), ': forward dropout ')
 
             
-            if self.normalization == 'batchnorm':
-                pass
-            elif self.normalization == 'layernorm':
-                pass
-            else: #if self.normalization == None:
-                pass
+            # if self.normalization == 'batchnorm':
+            #     pass
+            # elif self.normalization == 'layernorm':
+            #     pass
+            # else: #if self.normalization == None:
+            #     pass
                 
 
         # affine_forward is  affine only (without relu, drop out)
@@ -290,13 +309,15 @@ class FullyConnectedNet(object):
             # print('layer ' + str(ind), ': backward relu - affine')
             # d_scores, dW, db = affine_relu_backward(d_scores, cache['cache' + str(ind)]) 
             d_scores, dW, db = affine_norm_activation_backward(d_scores, cache['cache' + str(ind)],norm = self.normalization, activation = 'ReLU')
+            
             # save gradiants
-            grads['W'+ str(ind)] = dW + self.reg * self.params['W' + str(ind)]
+            W =  self.params['W' + str(ind)]
+            grads['W'+ str(ind)] = dW + self.reg * W
             grads['b'+ str(ind)] = db
         # self.grads = grads
-        del cache
         
-
+        del cache
+             
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #

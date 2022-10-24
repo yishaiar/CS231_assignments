@@ -141,9 +141,8 @@ def relu_backward(dout, cache):
     # dx = [x>0]
     # dx[x>0] = 1
     # dx *= dout
-
-    dx = [x>0]  #bool index
-    dx *= dout #recieve dout with 0 every place x==0 
+    dx = dout * (x > 0) #recieve dout with 0 every place x==0 
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################

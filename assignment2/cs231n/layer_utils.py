@@ -1,8 +1,8 @@
-from layers import *
-from fast_layers import *
+# from layers import *
+# from fast_layers import *
 
-# from cs231n.layers import *
-# from cs231n.fast_layers import *
+from cs231n.layers import *
+from cs231n.fast_layers import *
 
 def affine_relu_forward(x, w, b):
     """
@@ -42,7 +42,8 @@ def affine_relu_backward(dout, cache):
 
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-def affine_norm_activation_forward(x, w, b,beta,gamma, bn_param,norm = None, activation = 'ReLU'):
+def affine_norm_activation_forward(x, w, b, bn_param,norm, activation,beta = None ,gamma = None):
+    
     """
     Convenience layer that perorms an affine transform 
     followed by
@@ -59,26 +60,26 @@ def affine_norm_activation_forward(x, w, b,beta,gamma, bn_param,norm = None, act
     - out: Output from the ReLU
     - cache: Object to give to the backward pass
     """
-    a, fc_cache = affine_forward(x, w, b)
+    A, fc_cache = affine_forward(x, w, b)
     # fc_cache is the affine_forward cached inputs; cache = (x, w, b) 
-    # a is the out result; out = X@w+b
+    # A is the out result; out = X@w+b
     
     if norm == 'batchnorm':
-        b, norm_cache = batchnorm_forward(a, gamma, beta, bn_param)
+        B, norm_cache = batchnorm_forward(A, gamma, beta, bn_param)
     elif norm == 'layernorm':
-        b, norm_cache = layernorm_forward(a, gamma, beta, bn_param)
+        B, norm_cache = layernorm_forward(A, gamma, beta, bn_param)
     else: #if norm == None:
-        b = a
+        B = A
 
     if activation == 'ReLU':
-        out, relu_cache = relu_forward(b)
-        # relu_cache is the relu_forward cached input; cache = a 
-        # out is the relu result; out = np.maximum(0,a)
+        out, relu_cache = relu_forward(B)
+        # relu_cache is the relu_forward cached input; cache = A
+        # out is the relu result; out = np.maximum(0,A)
     # else: other activation function
     
     # fc_cache is the affine_forward cached inputs; cache = (x, w, b) 
     # norm_cache TBD
-    # relu_cache is the relu_forward cached input; cache = a 
+    # relu_cache is the relu_forward cached input; cache = A 
     
 
     if norm != None:
@@ -104,17 +105,17 @@ def affine_norm_activation_backward(dout, cache,norm = None, activation = 'ReLU'
     
     
     if activation == 'ReLU':
-        db = relu_backward(dout, relu_cache)
+        dB = relu_backward(dout, relu_cache)
     # else: other activation function
 
     if norm == 'batchnorm':
-        da, dgamma, dbeta = batchnorm_backward(db, norm_cache)
+        dA, dgamma, dbeta = batchnorm_backward(dB, norm_cache)
     elif norm == 'layernorm':
-        da, dgamma, dbeta = layernorm_backward(db, norm_cache)
+        dA, dgamma, dbeta = layernorm_backward(dB, norm_cache)
     else: #if norm == None:
-        da = db
+        dA = dB
     
-    dx, dw, db = affine_backward(da, fc_cache)
+    dx, dw, db = affine_backward(dA, fc_cache)
     return dx, dw, db
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****

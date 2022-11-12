@@ -70,8 +70,11 @@ def sgd_momentum(w, dw, config=None):
     # the next_w variable. You should also use and update the velocity v.     #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    mu = config.get("momentum")
+    learning_rate = config.get("learning_rate")
+    # Momentum update; x:= w,dx:=dw 
+    v = mu * v - learning_rate * dw # integrate velocity
+    next_w = w + v # integrate position
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -108,9 +111,16 @@ def rmsprop(w, dw, config=None):
     # config['cache'].                                                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    # x:= w,dx:=dw 
+    decay_rate = config.get("decay_rate")
+    learning_rate = config.get("learning_rate")
+    eps = config.get("epsilon")
+    old_cache = config.get("cache")
+   
+    cache =  decay_rate * old_cache + (1 - decay_rate) * dw**2 
+    next_w = w - learning_rate * dw / (np.sqrt(cache) + eps)
+    
+    config["cache"] =  cache
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -153,8 +163,20 @@ def adam(w, dw, config=None):
     # using it in any calculations.                                           #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    # x:= w,dx:=dw 
+    # m is a smoothing over time of gradient dw
+    
+    keys = ['learning_rate','beta1','beta2','epsilon','m','v','t'] # keys in this order
+    learning_rate, beta1, beta2, eps, m, v, t = (config.get(k) for k in keys) # vals in this order
+    
+    # t is your iteration counter going from 1 to infinity:
+    #   update by 1 every iteration
+    config['t'] = t = t + 1                             
+    config['m'] = m = beta1 * m + (1 - beta1) * dw      # gradient dw smoothing over time (Momentum)
+    mt = m / (1 - beta1**t)                             # bias correction
+    config['v'] = v = beta2 * v + (1 - beta2) * (dw**2) # gradient smoothing (RMSprop)
+    vt = v / (1 - beta2**t)                             # bias correction
+    next_w = w - learning_rate * mt / (np.sqrt(vt) + eps)          # weight update
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
